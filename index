@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WRW Rattler Run Certificate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 15px;
+    }
+
+    input, button {
+      padding: 12px;
+      font-size: 18px;
+      margin: 6px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    button {
+      background: #f39c12;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    canvas {
+      margin-top: 20px;
+      border: 3px solid #f39c12;
+      max-width: 100%;
+      height: auto;
+      background: #222;
+    }
+
+    #status {
+      margin-top: 12px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>WRW Rattler Run Certificate</h1>
+
+  <input id="nameInput" type="text" placeholder="Enter your name" />
+
+  <br>
+
+  <button id="generateBtn">Generate Certificate</button>
+  <button id="downloadBtn" disabled>Download Certificate</button>
+
+  <div id="status">Loading certificate image…</div>
+
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const nameInput = document.getElementById("nameInput");
+    const generateBtn = document.getElementById("generateBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const status = document.getElementById("status");
+
+    const certImage = new Image();
+    certImage.src = "certificate.png";   // MUST match filename in repo
+
+    let imageLoaded = false;
+    let hasGenerated = false;
+
+    certImage.onload = () => {
+      imageLoaded = true;
+      canvas.width = certImage.naturalWidth;
+      canvas.height = certImage.naturalHeight;
+      ctx.drawImage(certImage, 0, 0);
+      status.textContent = "Ready. Enter your name and press Generate.";
+    };
+
+    certImage.onerror = () => {
+      status.textContent = "ERROR: certificate.png failed to load.";
+    };
+
+    function drawName(name) {
+      // Force ALL CAPS
+      const upperName = name.toUpperCase();
+
+      ctx.font = "120px Impact";
+      ctx.fillStyle = "#f5f5f5";   // soft white
+      ctx.textAlign = "center";
+
+      // Drop shadow
+      ctx.shadowColor = "rgba(0,0,0,0.45)";
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
+
+      const x = canvas.width / 2;
+      const y = canvas.height * 0.67;   // under AWARDED TO
+
+      ctx.fillText(upperName, x, y);
+
+      // Reset shadow
+      ctx.shadowColor = "transparent";
+    }
+
+    function drawDate() {
+      const today = new Date();
+      const dateString = today.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+
+      ctx.font = "36px Arial";
+      ctx.fillStyle = "#ffffff";   // black date
+      ctx.textAlign = "center";
+
+      ctx.shadowColor = "rgba(0,0,0,0.35)";
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+
+      const x = canvas.width / 2;
+      const y = canvas.height * 0.93;   // under 10 KILOMETERS
+
+      ctx.fillText(dateString, x, y);
+
+      ctx.shadowColor = "transparent";
+    }
+
+    function generateCertificate() {
+      if (!imageLoaded) {
+        status.textContent = "Still loading certificate image…";
+        return;
+      }
+
+      const name = nameInput.value.trim();
+      if (!name) {
+        status.textContent = "Enter your name first.";
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(certImage, 0, 0);
+
+      drawName(name);
+      drawDate();
+
+      hasGenerated = true;
+      downloadBtn.disabled = false;
+      status.textContent = "Certificate generated. Ready to download.";
+    }
+
+    function downloadCertificate() {
+      if (!hasGenerated) {
+        status.textContent = "Generate the certificate first.";
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.download = "WRW_Rattler_Certificate.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+
+    generateBtn.addEventListener("click", generateCertificate);
+    downloadBtn.addEventListener("click", downloadCertificate);
+  </script>
+
+</body>
+</html>
+
